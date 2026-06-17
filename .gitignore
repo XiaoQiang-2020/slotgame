@@ -9,6 +9,7 @@ MemoryCaptures/
 
 # Auto generated VS/IDE files
 .vscode/
+.vs/
 *.csproj
 *.unityproj
 *.sln
@@ -40,3 +41,6 @@ Packages/manifest.json
 *.unitypackage
 Assets/AssetBundles/
 HybridCLRData/
+Bundles/
+Build/
+yoo/

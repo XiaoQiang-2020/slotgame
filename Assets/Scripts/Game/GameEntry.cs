@@ -5,6 +5,6 @@ public class GameEntry : MonoSingleton<GameEntry>
 {
     void Start()
     {
-        GameManager.Instance.Init();
+        GameManagerEx.Instance.Init();
     }
 }

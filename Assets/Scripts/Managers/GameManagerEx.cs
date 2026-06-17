@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class GameManager : Utils.Singleton<GameManager>
+public class GameManagerEx : Utils.Singleton<GameManagerEx>
 {
     public void Init()
     {
