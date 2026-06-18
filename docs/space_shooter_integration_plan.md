@@ -210,6 +210,76 @@ SpaceShooter 是第一条游戏内容线，负责：
 
 玩法逻辑、数值配置读取、UI 控制逻辑应放入 HybridCLR 热更 DLL。游戏 UI prefab、动画、图片、音效、关卡配置、数值表等资源走 YooAsset 资源分组更新。
 
+## 全局服务与单例约束
+
+项目允许使用少量全局服务或单例，但必须按层级限制职责，避免所有模块都通过 `Instance` 互相访问。
+
+### 随包全局服务
+
+随包全局服务放在 `Framework` 或 `App/Core`，生命周期可以跨场景，允许使用 `DontDestroyOnLoad`。
+
+适合放在随包层的服务：
+
+- `PatchService` 或 `PatchFacade`
+- `ResourceService`
+- `HotUpdateLoader`
+- `SceneFlowService`
+- `AppConfigService`
+- `ErrorFallbackService`
+
+约束：
+
+- 必须能在热更 DLL 加载失败时工作。
+- 不直接依赖 `App/HotUpdate` 或 `Games/SpaceShooter` 的具体实现类。
+- 可以通过接口、事件、Facade 或配置驱动热更入口。
+- 负责兜底流程、错误提示、资源更新、热更 DLL 加载等基础能力。
+
+### 热更层服务
+
+热更层服务放在 `App/HotUpdate` 或 `Games/SpaceShooter`，由热更入口创建、初始化和销毁。
+
+适合放在热更层的服务：
+
+- `LoginService`
+- `GameSession`
+- `GameConfigService`
+- `UIService`
+- `AudioService`
+
+约束：
+
+- 可以使用单例或服务定位，但必须有显式 `Init` / `Dispose` 生命周期。
+- 不允许被 `Framework` 直接引用。
+- 不应承担 patch、热更 DLL 加载、兜底错误提示等随包职责。
+- 退出游戏内容或重新加载热更域时，必须能清理事件监听、资源句柄和场景状态。
+
+### 场景内控制器
+
+场景内控制器默认不设计为单例，随场景创建和销毁。
+
+适合保持场景生命周期的对象：
+
+- `LoadingController`
+- `LoginController`
+- `GameController`
+- `BattleController`
+- 各类 `View`
+
+约束：
+
+- 不使用 `DontDestroyOnLoad`。
+- 不作为全局状态保存点。
+- 跨场景数据通过 App/Core 服务、热更层服务或明确的数据模型传递。
+- 销毁时要解绑按钮事件、UniEvent 监听和异步回调。
+
+### 跨层通信原则
+
+- `Framework` 可以暴露稳定接口和事件，但不引用热更层具体类。
+- `App/Core` 可以负责热更入口编排，但不写 Login 或玩法细节。
+- `App/HotUpdate` 可以调用随包稳定服务，但不能反过来要求随包服务依赖热更实现。
+- `Games/SpaceShooter` 可以使用 App 和 Framework 暴露的公共能力，但玩法状态留在游戏内容层。
+- 跨层通信优先使用接口、事件、Facade 或数据配置，不直接链式访问多个单例。
+
 ## 场景流程
 
 目标流程：
@@ -304,6 +374,14 @@ Boot
 - Games/SpaceShooter 玩法逻辑、UI 控制、配置读取进入 HybridCLR 热更 DLL。
 - Login、Loading、SpaceShooter 的 prefab、动画、图片、音效、配置表走 YooAsset 资源分组。
 
+### 3.2 规范全局服务
+
+- 盘点现有 `Instance`、`DontDestroyOnLoad` 和静态全局入口。
+- 将 patch、资源、热更 DLL 加载、兜底错误提示保留在 Framework 或 App/Core。
+- 将 Login、UI、Audio、GameSession 等运行期服务放到 App/HotUpdate 或 Games/SpaceShooter。
+- 场景 Controller 和 View 不做全局单例。
+- 为热更层服务补充显式 `Init` / `Dispose` 生命周期。
+
 ### 4. 保留 sample 来源
 
 - 保留 `Assets/Samples/YooAsset/3.0.2-beta/SpaceShooter`。
@@ -336,8 +414,9 @@ Boot
 - 任务 6：修正 SceneNavigator/SceneNames/LoadingTarget 等引用。
 - 任务 7：更新 Build Settings 场景顺序。
 - 任务 8：配置 HybridCLR DLL 全量更新和 YooAsset 资源分组。
-- 任务 9：运行验证完整流程：Boot -> Patch -> Load HotUpdate DLL -> Loading -> Login -> Loading -> Game。
-- 任务 10：记录 sample 与主工程迁移后代码的差异点。
+- 任务 9：规范全局服务和单例生命周期。
+- 任务 10：运行验证完整流程：Boot -> Patch -> Load HotUpdate DLL -> Loading -> Login -> Loading -> Game。
+- 任务 11：记录 sample 与主工程迁移后代码的差异点。
 
 ## 场景生成后绑定检查清单
 
@@ -356,6 +435,9 @@ Boot
 - [ ] LoginView 已绑定输入框、按钮和消息文本。
 - [ ] 游戏入口场景能进入 SpaceShooter 玩法逻辑。
 - [ ] SpaceShooter 资源引用迁移后无缺失。
+- [ ] 随包全局服务不依赖热更层具体实现。
+- [ ] 热更层服务具备 Init/Dispose 生命周期。
+- [ ] 场景 Controller/View 未设计为跨场景单例。
 - [ ] Sample 目录仍可作为来源对照。
 
 ## 风险与注意点
@@ -366,6 +448,7 @@ Boot
 - App 层不应包含 SpaceShooter 玩法细节，只负责选择和进入目标内容。
 - Login 默认走热更，但不能没有随包兜底，否则热更 DLL 或资源包损坏时无法提示用户。
 - Framework 作为热更流程核心，不应依赖 HotUpdate DLL 才能完成 patch 和失败恢复。
+- 单例如果跨层互相直接引用，会破坏 Framework/App/HotUpdate/Game 的边界，后续热更和卸载会变难。
 - Sample 目录如果继续被误用为开发目录，会导致主工程结构再次分叉。
 
 ## 结论
