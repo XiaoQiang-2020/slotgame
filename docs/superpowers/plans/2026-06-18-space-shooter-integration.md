@@ -1195,3 +1195,18 @@ This plan intentionally avoids placeholders. Deferred decisions are explicit cho
 - `PatchWindow.prefab` must be rewired in Unity Editor to `Framework.Patch.PatchWindow` during Task 1. If Unity reports a missing script on the copied prefab, fix that prefab binding before moving to Task 2.
 - Current worktree has unrelated existing changes. Every task must stage only files listed in that task.
 - Unity scene and prefab files should be modified through Unity Editor, not text-edited by an agent.
+
+---
+
+## Execution Notes 2026-06-18
+
+- Task 1 code path was implemented with `App.Boot.AppBoot`, `Framework.Patch.PatchWindow`, and `Assets/Resources/PatchWindow.prefab`.
+- `App.Scene.SceneNames` and `App.Scene.SceneNavigator` were created during Task 1 instead of Task 3 because `AppBoot` depends on them for compilation.
+- Task 2 was implemented: default `PatchManager` no longer registers `FsmLoadMetadata`; downloader completion and no-download paths now go to `FsmClearCacheBundle`.
+- Task 3 was implemented: Login MVC moved to `Assets/Scripts/App/Login` and uses `App.Scene`.
+- Task 4 was implemented: active `Framework/Scene` Loading flow and legacy `PatchController/PatchView` were removed from the formal runtime path.
+- Task 5 was implemented: generic Game shell and `GameEntry` moved to `Assets/Scripts/App/Game`.
+- Task 6 was adjusted: copied SpaceShooter scripts are parked in `Assets/Games/SpaceShooter/GameScriptSource~` to avoid duplicate global classes while sample scripts remain compiled.
+- Task 7 was partially automated: collector paths in copied SpaceShooter settings now point to `Assets/Games/SpaceShooter/GameRes`; final collector/GUID validation remains an Editor task.
+- Task 8 was adjusted: `Assets/Editor/SceneGenerator.cs` now generates Boot/Login/Game and no Loading scene. Actual `.unity` files and Build Settings still require Unity Editor execution.
+- Boundary scans passed for Framework reverse dependencies, Loading/FsmLoadMetadata default path references, and `Resources.Load` usage.

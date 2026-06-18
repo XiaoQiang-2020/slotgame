@@ -448,3 +448,18 @@ Boot
 - HybridCLR/AOT 工程能力保留，可随时按独立开关启用，但默认主流程不依赖热更 DLL。
 - 将 sample 目录作为来源基线保留，而不是长期开发目录。
 - 以主工程 `Assets/Scenes/Boot.unity` 为正式运行入口，保证调整架构后可以直接运行游戏。
+
+## Execution Notes 2026-06-18
+
+- Formal runtime code is now split toward `Assets/Scripts/Framework`, `Assets/Scripts/App`, and `Assets/Games/SpaceShooter`.
+- `App.Boot.AppBoot` owns Unity startup, creates `Resources/PatchWindow.prefab`, starts `Framework.Patch.PatchFacade`, and enters `App.Scene.SceneNavigator.LoadLoginScene()` after `PatchCompletedEvent`.
+- `Framework.Patch.PatchBoot` is now only a coroutine runner for existing patch FSM nodes.
+- Default patch flow bypasses `FsmLoadMetadata`; `FsmLoadMetadata.cs` remains as optional HybridCLR/AOT capability and is not registered by default.
+- `Framework/Login`, `Framework/Game`, and active `Framework/Scene` Loading flow were moved or removed from the formal runtime path.
+- `App.Scene.SceneNavigator` directly loads `Login` and `Game`; no App-level `Loading.unity` is used.
+- `Assets/Resources/PatchWindow.prefab` is copied from the YooAsset sample and points to `Framework.Patch.PatchWindow`.
+- `Assets/Games/SpaceShooter/GameRes` and `GameSetting` are copied into the formal game directory. Collector paths now point to `Assets/Games/SpaceShooter/GameRes`.
+- Copied SpaceShooter scripts are parked in `Assets/Games/SpaceShooter/GameScriptSource~` for this pass. Unity ignores `~` folders, avoiding duplicate global class definitions while the original sample scripts remain compiled.
+- Follow-up choice: either remove sample scripts from compilation after scene/prefab migration, or namespace the copied scripts and rebind copied prefabs/scenes in Unity Editor.
+- `Assets/Editor/SceneGenerator.cs` now generates `Assets/Scenes/Boot.unity`, `Login.unity`, and `Game.unity` with App-layer components and does not generate `Loading.unity`.
+- Unity Editor validation is still required: run `Tools/Generate SlotGame Scenes`, confirm Build Settings order, compile, and Play from `Assets/Scenes/Boot.unity`.

@@ -411,3 +411,12 @@ AI 不应直接处理或需谨慎处理：
 这份修订稿的重点不是追求大而全，而是把当前项目真实采用的 YooAsset 资源热更 + Framework/App/Game 分层写清楚。HybridCLR/AOT 作为现有工程能力保留，默认主流程不依赖热更 DLL，但需要时可以按独立开关启用逻辑热更。
 
 后续所有实现计划、AI Prompt、代码生成和 Unity Editor 操作，都应以本修订稿和 `space_shooter_integration_plan.md` 为准。
+
+## Execution Notes 2026-06-18
+
+- Current implementation follows the documented `Framework + App + Games/SpaceShooter` split.
+- `Framework` must stay free of `App`, `Games`, `Framework.Login`, `Framework.Game`, and `Framework.Scene` dependencies.
+- `Resources.Load` is allowed only for the Boot/Patch fallback `PatchWindow` before YooAsset-managed resources are available.
+- HybridCLR/AOT remains retained tooling, but the default patch chain must not register or transition to `FsmLoadMetadata`.
+- `Assets/Games/SpaceShooter/GameScriptSource~` is a temporary non-compiled migration source while sample scripts still exist. Do not treat it as active gameplay code until duplicate global class risk is resolved.
+- Scene and Build Settings changes must be finalized in Unity Editor by running the updated `Tools/Generate SlotGame Scenes` tool and validating `Boot -> Patch -> Login -> Game`.
