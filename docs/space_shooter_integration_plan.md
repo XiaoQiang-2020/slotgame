@@ -7,7 +7,7 @@
 - 将 YooAsset patch、状态机、事件桥接等公共能力抽取到主工程 `Framework` 层。
 - 将 Boot、Login、场景流转等应用主流程放到 `App` 层。
 - 将 SpaceShooter 的玩法、资源、场景和 UI 迁移到正式游戏内容目录。
-- 保留官方 sample 作为来源对照和回溯基线，但不再作为长期开发目录。
+- sample 迁移完成后从活跃工程归档删除，来源对照改由 git 历史或工程外官方包承担。
 
 最终目标是：调整代码架构后，直接运行主工程入口即可完成 `Boot -> Patch(资源版本校验与下载) -> Login -> Game` 的基础流程。
 
@@ -15,7 +15,7 @@
 
 采用 **A 方案：Framework 抽取版**。
 
-`Assets/Samples/YooAsset/3.0.2-beta/SpaceShooter` 不再承担主工程运行入口职责。它的定位是官方 demo 来源、迁移对照、后续差异回查基线。
+`Assets/Samples/YooAsset/3.0.2-beta/SpaceShooter` 不再承担主工程运行入口职责；迁移完成后，该目录从活跃工程归档删除。官方 demo 对照和差异回查通过 git 历史或工程外重新导入的 YooAsset sample 完成。
 
 主工程正式维护以下三层：
 
@@ -49,10 +49,10 @@
    - SpaceShooter 不只是参考代码，而是第一条轻量休闲游戏内容线。
    - 玩法相关脚本、资源、场景、UI 迁到 `Assets/Games/SpaceShooter/` 后继续演进。
 
-4. **Sample 保持可回溯**
-   - 官方 sample 保留在 `Assets/Samples/...` 作为来源对照。
-   - 不在 sample 目录里继续做长期业务开发。
-   - 如需对照官方 demo 行为，优先回查 sample。
+4. **Sample 已归档删除**
+   - YooAsset SpaceShooter sample 的迁移已经完成，`Assets/Samples/YooAsset/3.0.2-beta/SpaceShooter` 不再保留在活跃工程中。
+   - 后续开发统一在 `Assets/Games/SpaceShooter/` 进行。
+   - 如需对照官方 demo 行为，使用 git 历史或在工程外重新导入 YooAsset 官方 sample。
 
 5. **可运行优先**
    - 每次目录迁移或边界调整后，都要保证主工程入口可以直接运行。
@@ -100,10 +100,6 @@ Assets/
       GameSetting/
       Scenes/
 
-  Samples/
-    YooAsset/
-      3.0.2-beta/
-        SpaceShooter/
 ```
 
 说明：
@@ -113,7 +109,7 @@ Assets/
 - `Assets/Scripts/App/` 负责启动、登录、场景跳转、公共配置和主流程。
 - `Assets/Scripts/App/Config/` 负责公共配置定义，配置数据可区分内置兜底和远端更新版本。
 - `Assets/Games/SpaceShooter/` 是正式游戏内容目录，不再把 sample 目录作为开发主线。
-- `Assets/Samples/.../SpaceShooter` 保留为官方导入版本和迁移来源。
+- `Assets/Samples/.../SpaceShooter` 已从活跃工程删除；它只作为 git 历史或外部官方包中的历史参考存在。
 
 ## 模块职责
 
@@ -319,7 +315,7 @@ Boot
 - 承认并继续推进 Framework 抽取版。
 - App 主流程独立于 Framework。
 - SpaceShooter 游戏内容迁入 `Assets/Games/SpaceShooter/` 后继续开发。
-- Sample 保留为来源基线，不作为长期业务开发目录。
+- Sample 从活跃工程归档删除，来源基线改由 git 历史或工程外官方包承担。
 - 项目定位为超级休闲单游戏，不按大厅多子模式架构设计。
 
 ## 实施步骤
@@ -369,11 +365,11 @@ Boot
 - 场景 Controller 和 View 不做全局单例。
 - 为游戏运行期服务补充显式 `Init` / `Dispose` 生命周期。
 
-### 4. 保留 sample 来源
+### 4. 归档删除 sample 来源
 
-- 保留 `Assets/Samples/YooAsset/3.0.2-beta/SpaceShooter`。
-- 不再把它作为主工程启动入口。
-- 后续如需要精简 sample，可在确认迁移完整后单独规划。
+- 删除 `Assets/Samples/YooAsset/3.0.2-beta/SpaceShooter`，活跃工程不再保留 YooAsset SpaceShooter sample。
+- 不再把 sample 作为主工程启动入口或开发对照目录。
+- 后续如需对照官方 demo，使用 git 历史或工程外 YooAsset 官方 sample 包。
 
 ### 5. 更新场景跳转
 
@@ -424,7 +420,7 @@ Boot
 - [ ] 随包全局服务不依赖 SpaceShooter 具体玩法实现。
 - [ ] 游戏运行期服务具备 Init/Dispose 生命周期。
 - [ ] 场景 Controller/View 未设计为跨场景单例。
-- [ ] Sample 目录仍可作为来源对照。
+- [ ] Sample 目录已归档删除；来源对照通过 git 历史或工程外官方包完成。
 
 ## 风险与注意点
 
@@ -434,7 +430,7 @@ Boot
 - App 层不应包含 SpaceShooter 玩法细节，只负责选择和进入目标内容。
 - 资源更新失败时必须能使用随包兜底资源提示用户。
 - 单例如果跨层互相直接引用，会破坏 Framework/App/Game 的边界，后续维护和资源更新会变难。
-- Sample 目录如果继续被误用为开发目录，会导致主工程结构再次分叉。
+- 如需重新导入官方 sample，必须放在工程外或临时分支，避免活跃工程再次分叉。
 
 ## 结论
 
@@ -446,7 +442,7 @@ Boot
 - 将 SpaceShooter 游戏内容正式迁到 `Assets/Games/SpaceShooter/`。
 - C# 业务逻辑默认随包发布，UI、动画、音效、配置等走 YooAsset 资源分组更新。
 - HybridCLR/AOT 工程能力保留，可随时按独立开关启用，但默认主流程不依赖热更 DLL。
-- 将 sample 目录作为来源基线保留，而不是长期开发目录。
+- sample 迁移完成后已从活跃工程归档删除；后续来源对照使用 git 历史或工程外官方包。
 - 以主工程 `Assets/Scenes/Boot.unity` 为正式运行入口，保证调整架构后可以直接运行游戏。
 
 ## Execution Notes 2026-06-18
@@ -459,7 +455,7 @@ Boot
 - `App.Scene.SceneNavigator` directly loads `Login` and `Game`; no App-level `Loading.unity` is used.
 - `Assets/Resources/PatchWindow.prefab` is copied from the YooAsset sample and points to `Framework.Patch.PatchWindow`.
 - `Assets/Games/SpaceShooter/GameRes` and `GameSetting` are copied into the formal game directory. Collector paths now point to `Assets/Games/SpaceShooter/GameRes`.
-- Copied SpaceShooter scripts are parked in `Assets/Games/SpaceShooter/GameScriptSource~` for this pass. Unity ignores `~` folders, avoiding duplicate global class definitions while the original sample scripts remain compiled.
-- Follow-up choice: either remove sample scripts from compilation after scene/prefab migration, or namespace the copied scripts and rebind copied prefabs/scenes in Unity Editor.
+- Copied SpaceShooter scripts are parked in `Assets/Games/SpaceShooter/GameScriptSource~` for this pass. Unity ignores `~` folders; after archive deletion, a follow-up can decide whether to enable these scripts, namespace them, or keep them parked until gameplay entry wiring is finalized.
+- Archive deletion decision: after migration and Unity/YooAsset validation, `Assets/Samples/YooAsset/3.0.2-beta/SpaceShooter` is removed from the active project. Future SpaceShooter work must use `Assets/Games/SpaceShooter`; original sample comparison comes from git history or an external YooAsset sample import.
 - `Assets/Editor/SceneGenerator.cs` now generates `Assets/Scenes/Boot.unity`, `Login.unity`, and `Game.unity` with App-layer components and does not generate `Loading.unity`.
 - Unity Editor validation is still required: run `Tools/Generate SlotGame Scenes`, confirm Build Settings order, compile, and Play from `Assets/Scenes/Boot.unity`.

@@ -1210,3 +1210,4 @@ This plan intentionally avoids placeholders. Deferred decisions are explicit cho
 - Task 7 was partially automated: collector paths in copied SpaceShooter settings now point to `Assets/Games/SpaceShooter/GameRes`; final collector/GUID validation remains an Editor task.
 - Task 8 was adjusted: `Assets/Editor/SceneGenerator.cs` now generates Boot/Login/Game and no Loading scene. Actual `.unity` files and Build Settings still require Unity Editor execution.
 - Boundary scans passed for Framework reverse dependencies, Loading/FsmLoadMetadata default path references, and `Resources.Load` usage.
+- Follow-up archive cleanup plan created: `docs/superpowers/plans/2026-06-18-archive-delete-samples.md`. It supersedes the earlier "keep sample as in-project baseline" assumption after the user confirmed archive-style deletion.

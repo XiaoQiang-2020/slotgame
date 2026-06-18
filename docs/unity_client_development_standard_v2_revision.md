@@ -63,11 +63,6 @@ Assets/
       GameSetting/
       Scenes/
 
-  Samples/
-    YooAsset/
-      3.0.2-beta/
-        SpaceShooter/
-
   ThirdParty/
 ```
 
@@ -78,7 +73,7 @@ Assets/
 - `Assets/Scripts/App/Config/`：公共配置定义，区分内置兜底配置和远端更新配置。
 - `Assets/Resources/PatchWindow.prefab`：Boot/Patch 阶段随包兜底 UI，来源可参考 sample `SpaceShooter/Resources/PatchWindow.prefab`，仅用于 YooAsset 初始化前的 patch 反馈和失败重试。
 - `Assets/Games/SpaceShooter/`：正式游戏内容目录，承载玩法脚本、UI、资源、配置、场景。
-- `Assets/Samples/.../SpaceShooter/`：官方 sample 来源基线，只做对照和回溯，不作为长期开发目录。
+- `Assets/Samples/.../SpaceShooter/`：迁移完成后不再保留在活跃工程中。需要对照官方 sample 时，使用 git 历史或工程外的 YooAsset 官方 sample 包。
 - `Assets/ThirdParty/`：第三方库和 SDK，只读，禁止直接修改源码。
 
 强制规则：
@@ -418,5 +413,5 @@ AI 不应直接处理或需谨慎处理：
 - `Framework` must stay free of `App`, `Games`, `Framework.Login`, `Framework.Game`, and `Framework.Scene` dependencies.
 - `Resources.Load` is allowed only for the Boot/Patch fallback `PatchWindow` before YooAsset-managed resources are available.
 - HybridCLR/AOT remains retained tooling, but the default patch chain must not register or transition to `FsmLoadMetadata`.
-- `Assets/Games/SpaceShooter/GameScriptSource~` is a temporary non-compiled migration source while sample scripts still exist. Do not treat it as active gameplay code until duplicate global class risk is resolved.
+- `Assets/Games/SpaceShooter/GameScriptSource~` is a temporary non-compiled migration source. Since the active sample subtree is archived out of the project, a later task can decide whether to enable these scripts, namespace them, or keep them parked until SpaceShooter gameplay entry wiring is finalized.
 - Scene and Build Settings changes must be finalized in Unity Editor by running the updated `Tools/Generate SlotGame Scenes` tool and validating `Boot -> Patch -> Login -> Game`.
