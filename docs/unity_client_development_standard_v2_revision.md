@@ -11,18 +11,18 @@
 核心技术栈：
 
 - Unity 2022.3 LTS
-- HybridCLR：逻辑热更，主要用于 App/HotUpdate 和游戏玩法逻辑
 - YooAsset：资源更新、资源分组、Manifest、Patch 流程
+- HybridCLR：未来可选扩展能力，当前阶段不启用
 - UniFramework.Event / UniFramework.Machine：事件和状态机
 - MVC + 事件驱动：应用层和玩法层的主要组织方式
 - Superpowers / Codex / AI Agent：用于设计、计划、代码生成、审查和文档维护
 
 核心目标：
 
-- 主工程入口可直接运行：`Boot -> Patch -> Load HotUpdate DLL -> Loading -> Login -> Loading -> Game`
+- 主工程入口可直接运行：`Boot -> Patch(资源版本校验与下载) -> Login -> Game`
 - Framework 稳定随包，避免频繁热更
-- App/Login 默认可热更
-- 玩法逻辑、数值配置读取、UI 控制走 HybridCLR DLL 全量更新
+- App/Login 随包发布
+- 游戏玩法 C# 逻辑随包发布
 - UI prefab、动画、图片、音效、配置表走 YooAsset 资源分组更新
 
 ## 二、工程目录结构
@@ -33,7 +33,6 @@
 Assets/
   Scenes/
     Boot.unity
-    Loading.unity
     Login.unity
     Game.unity
 
@@ -45,13 +44,9 @@ Assets/
       Utils/
 
     App/
-      Core/
-        Boot/
-        Scene/
-        FallbackUI/
-      HotUpdate/
-        Loading/
-        Login/
+      Boot/
+      Login/
+      Scene/
       Config/
 
   Games/
@@ -77,8 +72,7 @@ Assets/
 目录职责：
 
 - `Assets/Scripts/Framework/`：公共底座，原则上随包发布，不作为常规热更目标。
-- `Assets/Scripts/App/Core/`：应用随包核心，负责 Boot、Patch 后流程、HybridCLR 加载、兜底 UI。
-- `Assets/Scripts/App/HotUpdate/`：应用热更层，负责 Login、正式 Loading、轻量业务入口。
+- `Assets/Scripts/App/`：应用壳层，负责 Boot、Login、场景跳转、公共配置和兜底 UI。
 - `Assets/Scripts/App/Config/`：公共配置定义，区分内置兜底配置和远端更新配置。
 - `Assets/Games/SpaceShooter/`：正式游戏内容目录，承载玩法脚本、UI、资源、配置、场景。
 - `Assets/Samples/.../SpaceShooter/`：官方 sample 来源基线，只做对照和回溯，不作为长期开发目录。
@@ -87,49 +81,28 @@ Assets/
 强制规则：
 
 - 新代码必须放入对应层级目录，禁止直接放在 `Assets/` 根目录。
-- `Framework` 不允许引用 `App/HotUpdate` 或 `Games/SpaceShooter` 的具体实现。
-- `App/Core` 不写 Login 业务和玩法细节。
+- `Framework` 不允许引用 `App` 或 `Games/SpaceShooter` 的具体业务实现。
+- `App` 可以包含 Login 和主流程，但不写 SpaceShooter 玩法细节。
 - `Games/SpaceShooter` 可以使用 Framework 和 App 暴露的稳定能力，但玩法状态留在游戏内容层。
 
 ## 三、热更边界
 
 ### 随包发布
 
-以下模块随包发布，不作为常规热更目标：
+当前阶段所有 C# 业务逻辑随包发布，不作为常规热更目标：
 
 - `Assets/Scripts/Framework/Patch/`
 - `Assets/Scripts/Framework/Resource/`
 - `Assets/Scripts/Framework/Utils/`
-- `Assets/Scripts/App/Core/`
-- 兜底 Loading / 兜底错误提示 UI
-- HybridCLR AOT 元数据加载入口
-- 热更 DLL 加载入口
-
-这些模块必须在热更失败、资源包损坏、网络异常时仍能工作。
-
-### HybridCLR 热更
-
-以下模块默认进入 HybridCLR 热更 DLL：
-
-- `Assets/Scripts/App/HotUpdate/Login/`
-- `Assets/Scripts/App/HotUpdate/Loading/`
+- `Assets/Scripts/App/`
 - `Assets/Games/SpaceShooter/Scripts/`
-- 玩法逻辑
-- 数值配置读取逻辑
-- UI 控制逻辑
-- 广告展示策略和频控逻辑
-- 埋点业务封装逻辑
+- 兜底 Loading / 兜底错误提示 UI
 
-约束：
-
-- 热更代码不能重复初始化 Framework 单例。
-- 热更代码不能成为 Patch 和失败恢复的前置依赖。
-- 新增泛型实例时，需要检查 AOT 元数据和 `link.xml`。
-- 修改热更代码后，需要执行 HybridCLR 生成流程并验证 DLL 加载。
+这些模块必须在资源更新失败、资源包损坏、网络异常时仍能工作。
 
 ### YooAsset 资源更新
 
-以下内容走 YooAsset 资源分组更新：
+当前阶段只启用资源热更。以下内容走 YooAsset 资源分组更新：
 
 - UI prefab
 - 图片、图集、字体
@@ -137,25 +110,37 @@ Assets/
 - 音效、BGM
 - 关卡配置、数值表、公告配置
 - SpaceShooter 游戏资源
-- Login / Loading 的正式表现资源
+- Login 的表现资源
 
-资源要求：
+约束：
 
 - 禁止使用 `Resources.Load` 作为正式资源加载方式。
 - 资源必须进入明确的 YooAsset 包和 Collector 分组。
 - Patch 流程必须能显示下载进度、失败提示和重试入口。
 - 关键兜底资源应随包保留，避免更新失败后无法显示错误 UI。
 
+### HybridCLR 预留能力
+
+HybridCLR 保留为未来可选扩展能力，当前阶段不启用，不进入启动链路，也不要求加载 AOT 元数据或热更 DLL。
+
+未来如果线上逻辑热更收益明确，再单独设计并评审：
+
+- 热更 DLL 加载入口。
+- AOT 元数据加载。
+- `link.xml` 和泛型实例保留策略。
+- 热更层服务生命周期。
+- 失败回滚和灰度策略。
+
 ## 四、架构模式
 
-项目采用 MVC + 事件驱动，但按目录边界区分稳定层和热更层。
+项目采用 MVC + 事件驱动，并按目录边界区分公共底座、应用壳层和游戏内容层。
 
 ### Model
 
 - 负责数据存储和状态管理。
 - 不持有 View 引用。
 - 不直接调用 SDK。
-- 可序列化、可重建，适合热更。
+- 可序列化、可重建，适合随包逻辑和资源配置更新。
 
 ### View
 
@@ -174,7 +159,7 @@ Assets/
 
 - 提供稳定公共能力。
 - 可以暴露接口、事件、Facade。
-- 不引用热更层具体实现。
+- 不引用 App 或 Games 的具体业务实现。
 
 ## 五、全局服务与单例约束
 
@@ -182,26 +167,25 @@ Assets/
 
 ### 随包全局服务
 
-放在 `Framework` 或 `App/Core`，允许跨场景，允许 `DontDestroyOnLoad`。
+放在 `Framework` 或 `App`，允许跨场景，允许 `DontDestroyOnLoad`。
 
 适合：
 
 - `PatchService` / `PatchFacade`
 - `ResourceService`
-- `HotUpdateLoader`
 - `SceneFlowService`
 - `AppConfigService`
 - `ErrorFallbackService`
 
 要求：
 
-- 必须能在热更 DLL 加载失败时工作。
-- 不直接依赖 `App/HotUpdate` 或 `Games/SpaceShooter` 的具体类。
-- 通过接口、事件、Facade 或配置驱动热更入口。
+- 必须能在资源更新失败时工作。
+- 不直接依赖 `Games/SpaceShooter` 的具体玩法类。
+- 通过接口、事件、Facade 或配置驱动游戏入口。
 
-### 热更层服务
+### 游戏运行期服务
 
-放在 `App/HotUpdate` 或 `Games/SpaceShooter`，由热更入口创建和销毁。
+放在 `App` 或 `Games/SpaceShooter`，由 App 主流程或游戏入口创建和销毁。
 
 适合：
 
@@ -223,7 +207,7 @@ Assets/
 - 禁止所有系统都继承同一个宽泛 `Singleton<T>`。
 - 禁止 View / Controller 做跨场景单例。
 - 禁止链式访问多个单例，例如 `GameManager.Instance.UIManager.Config.X`。
-- 禁止热更层单例承担 Patch、DLL 加载、失败恢复职责。
+- 禁止游戏运行期单例承担 Patch、资源更新、失败恢复职责。
 
 ## 六、AI / Superpowers 工作流
 
@@ -241,7 +225,7 @@ Assets/
 设计确认后，生成实施计划：
 
 - 明确文件路径。
-- 明确热更层级。
+- 明确随包代码和 YooAsset 资源分组边界。
 - 明确 Unity Editor 手工步骤。
 - 明确测试和验证命令。
 - 明确 Prefab / Scene / Inspector 绑定清单。
@@ -262,7 +246,7 @@ AI 不应直接处理或需谨慎处理：
 - `.prefab`
 - Inspector 绑定
 - YooAsset Collector Editor 配置
-- HybridCLR Editor 菜单操作
+- HybridCLR Editor 菜单操作（当前阶段不启用）
 - 真机性能和广告 SDK 验证
 
 这些内容由 AI 输出操作清单，人工在 Unity Editor 中执行和确认。
@@ -274,12 +258,12 @@ AI 不应直接处理或需谨慎处理：
 建议写入 `AGENTS.md` 的核心约束：
 
 - Unity 版本固定为 2022.3 LTS。
-- 架构采用 `Framework + App/Core + App/HotUpdate + Games/SpaceShooter`。
-- Framework 不依赖热更层。
-- App/Login 默认热更，但必须保留随包兜底。
-- 玩法逻辑走 HybridCLR，资源走 YooAsset。
+- 架构采用 `Framework + App + Games/SpaceShooter`。
+- Framework 不依赖 App 或 Games 的具体业务实现。
+- App/Login 随包发布。
+- 游戏 C# 逻辑随包发布，资源走 YooAsset。
 - Controller/View 默认不做跨场景单例。
-- 修改热更代码必须提示 AOT 元数据、`link.xml`、HybridCLR Generate 检查项。
+- HybridCLR 是未来可选扩展能力，当前阶段不启用。
 
 ## 七、自定义 Skill 建议
 
@@ -297,7 +281,9 @@ AI 不应直接处理或需谨慎处理：
 
 ### unity-hybridclr
 
-触发：修改 `Assets/Scripts/App/HotUpdate/` 或 `Assets/Games/SpaceShooter/Scripts/`。
+当前阶段不作为强制 Skill。未来启用 HybridCLR 逻辑热更时再打开。
+
+启用后触发：修改热更 DLL 目录或新增逻辑热更模块。
 
 规则：
 
@@ -332,12 +318,12 @@ AI 不应直接处理或需谨慎处理：
 
 ## 八、广告与埋点
 
-广告系统和埋点系统可以放在热更层做业务策略，但 SDK Adapter 和兜底错误处理应保持稳定。
+广告系统和埋点系统当前随包发布，SDK Adapter 和兜底错误处理应保持稳定。广告配置、频控参数和展示资源可以通过 YooAsset 配置资源更新。
 
 建议分层：
 
-- `Framework` 或 `App/Core`：SDK Adapter 基础封装、初始化状态、错误兜底。
-- `App/HotUpdate`：广告展示策略、频控、运营参数、入口表现。
+- `Framework` 或 `App`：SDK Adapter 基础封装、初始化状态、错误兜底。
+- `App`：广告展示策略、频控、运营参数、入口表现。
 - `Games/SpaceShooter`：具体玩法内广告触发点。
 
 广告策略：
@@ -361,18 +347,16 @@ AI 不应直接处理或需谨慎处理：
 - 启动时间：目标 2 秒内进入可反馈界面。
 - 崩溃率：目标小于 0.3%。
 - Patch 失败必须有用户可见提示和重试入口。
-- 热更 DLL 加载失败必须能进入兜底错误界面。
+- 资源更新失败必须能进入兜底错误界面。
 
 发布前检查：
 
-- `Boot -> Patch -> Load HotUpdate DLL -> Loading -> Login -> Loading -> Game` 完整链路通过。
-- HybridCLR AOT 元数据加载成功。
-- 热更 DLL 加载成功。
+- `Boot -> Patch -> Login -> Game` 完整链路通过。
 - YooAsset Manifest 更新、下载、失败重试通过。
-- Login 默认来自热更 DLL，且随包兜底可用。
+- Login 随包逻辑可用，表现资源可通过 YooAsset 更新。
 - SpaceShooter 资源引用无缺失。
 - Controller/View 没有跨场景单例。
-- 热更层服务具备 `Init` / `Dispose`。
+- 游戏运行期服务具备 `Init` / `Dispose`。
 - 真机验证无主要 GC 尖峰、NullReferenceException、广告回调异常。
 
 ## 十、Git 与文档规范
@@ -397,17 +381,17 @@ AI 不应直接处理或需谨慎处理：
 
 初稿中的以下内容需要按本修订稿替换：
 
-- `Assets/GameLauncher` 改为 `Assets/Scripts/App/Core`。
-- `Assets/Hotfix` 改为 `Assets/Scripts/App/HotUpdate` 和 `Assets/Games/SpaceShooter/Scripts`。
+- `Assets/GameLauncher` 改为 `Assets/Scripts/App`。
+- `Assets/Hotfix` 当前阶段不启用；游戏 C# 逻辑放在 `Assets/Scripts/App` 和 `Assets/Games/SpaceShooter/Scripts` 并随包发布。
 - `Assets/Config` 改为 `Assets/Scripts/App/Config` 加 YooAsset 配置资源分组。
 - `ArtAssets` 改为 YooAsset 管理下的游戏内容资源目录。
 - `Addressables` 相关描述改为 YooAsset。
 - 宽泛的 `Scripts/Core/Models/Views/Controllers` 改为 `Framework/App/Games` 分层。
-- 单例规则改为随包全局服务、热更层服务、场景控制器三类。
+- 单例规则改为随包全局服务、游戏运行期服务、场景控制器三类。
 - `CLAUDE.md` 改为可选项目级约束文件，建议优先使用 `AGENTS.md` 作为多 Agent 通用入口。
 
 ## 十二、结语
 
-这份修订稿的重点不是追求大而全，而是把当前项目真实采用的 HybridCLR + YooAsset + Framework/App/Game 分层写清楚。
+这份修订稿的重点不是追求大而全，而是把当前项目真实采用的 YooAsset 资源热更 + Framework/App/Game 分层写清楚。HybridCLR 保留为未来可选扩展能力，当前阶段不启用。
 
 后续所有实现计划、AI Prompt、代码生成和 Unity Editor 操作，都应以本修订稿和 `space_shooter_integration_plan.md` 为准。
