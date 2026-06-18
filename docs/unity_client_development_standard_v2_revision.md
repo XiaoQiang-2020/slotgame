@@ -36,6 +36,9 @@ Assets/
     Login.unity
     Game.unity
 
+  Resources/
+    PatchWindow.prefab
+
   Scripts/
     Framework/
       Patch/
@@ -49,9 +52,6 @@ Assets/
       Scene/
       Config/
 
-    Resources/
-      PatchWindow.prefab
-
   Games/
     SpaceShooter/
       Scripts/
@@ -59,7 +59,6 @@ Assets/
         BattleLogic/
         WindowLogic/
         Behaviour/
-      Resources/
       GameRes/
       GameSetting/
       Scenes/

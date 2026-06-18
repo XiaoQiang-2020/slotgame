@@ -73,6 +73,9 @@ Assets/
     Login.unity
     Game.unity
 
+  Resources/
+    PatchWindow.prefab
+
   Scripts/
     Framework/
       Patch/
@@ -86,9 +89,6 @@ Assets/
       Scene/
       Config/
 
-    Resources/
-      PatchWindow.prefab
-
   Games/
     SpaceShooter/
       Scripts/
@@ -96,7 +96,6 @@ Assets/
         BattleLogic/
         WindowLogic/
         Behaviour/
-      Resources/
       GameRes/
       GameSetting/
       Scenes/
@@ -122,7 +121,7 @@ Assets/
 
 来源于 YooAsset SpaceShooter demo 的 patch 流程抽取，负责：
 
-- 初始化 YooAssets。
+- 使用 App/Boot 已初始化的 YooAssets，驱动资源包初始化和 patch 状态机。
 - 创建和驱动 PatchManager 状态机。
 - 保留 UniFramework.Event 事件机制。
 - 处理包初始化、版本请求、Manifest 更新、下载、缓存清理。
