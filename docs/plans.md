@@ -1,0 +1,11 @@
+plans  总共有10部分，子任务没有列出
+1.初始化 Unity2022.3LTS项目骨架并配置仓库 (0.5d)
+2.导入HybridCLR与YooAsset 官方demo并在Editor 中运行验证(0.5d)
+3.配置Hotfix编译与拷贝流程(dotnet build-Assets/HotfixDlls)(0.5d)
+4.实现并验证HybridCLRAOT元数据生成流程(GenerateMD)(0.5d)
+5.实现YooAsset本地打包与ResourceManager封装(0.5d)
+6.完善MVC示例代码与示例交互(Controller/View/Model示例)(0.5d)
+7.创建三场景骨架:Startup/Login/Game(场景流与预加载策略)(0.5d)
+8.Windows Player(IL2CPP)构建并验证热更+AOT(本地验证)(0.5d)
+9.编写本地验证文档与运行手册(包括常见错误排查)(0.5d)
+10.缓冲与修复(处理集成中发现的问题)(0.5d)

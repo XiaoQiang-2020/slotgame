@@ -175,7 +175,7 @@ public static class SceneGenerator
 
         var uiText = go.GetComponent<Text>();
         uiText.text = text;
-        uiText.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+        uiText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
         uiText.fontSize = fontSize;
         uiText.color = Color.white;
         uiText.alignment = TextAnchor.MiddleCenter;
@@ -204,7 +204,7 @@ public static class SceneGenerator
 
         var uiText = textGO.GetComponent<Text>();
         uiText.text = text;
-        uiText.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+        uiText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
         uiText.fontSize = 24;
         uiText.color = Color.white;
         uiText.alignment = TextAnchor.MiddleCenter;
@@ -235,7 +235,7 @@ public static class SceneGenerator
 
         var placeholderText = placeholderGO.GetComponent<Text>();
         placeholderText.text = placeholder;
-        placeholderText.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+        placeholderText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
         placeholderText.fontSize = 22;
         placeholderText.color = new Color(0.5f, 0.5f, 0.5f, 1f);
         placeholderText.alignment = TextAnchor.MiddleLeft;
@@ -249,7 +249,7 @@ public static class SceneGenerator
         textRect.offsetMax = new Vector2(-10, -10);
 
         var inputText = textGO.GetComponent<Text>();
-        inputText.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+        inputText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
         inputText.fontSize = 22;
         inputText.color = Color.black;
         inputText.alignment = TextAnchor.MiddleLeft;
