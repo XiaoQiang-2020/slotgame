@@ -413,5 +413,5 @@ AI 不应直接处理或需谨慎处理：
 - `Framework` must stay free of `App`, `Games`, `Framework.Login`, `Framework.Game`, and `Framework.Scene` dependencies.
 - `Resources.Load` is allowed only for the Boot/Patch fallback `PatchWindow` before YooAsset-managed resources are available.
 - HybridCLR/AOT remains retained tooling, but the default patch chain must not register or transition to `FsmLoadMetadata`.
-- `Assets/Games/SpaceShooter/GameScriptSource~` is a temporary non-compiled migration source. Since the active sample subtree is archived out of the project, a later task can decide whether to enable these scripts, namespace them, or keep them parked until SpaceShooter gameplay entry wiring is finalized.
+- `Assets/Games/SpaceShooter/Scripts` is the active compiled gameplay script directory. The non-compiled `GameScriptSource~` folder keeps only the excluded sample `PatchEventDefine.cs` and `UserEventDefine.cs` copies as historical reference because Framework owns patch/user events.
 - Scene and Build Settings changes must be finalized in Unity Editor by running the updated `Tools/Generate SlotGame Scenes` tool and validating `Boot -> Patch -> Login -> Game`.

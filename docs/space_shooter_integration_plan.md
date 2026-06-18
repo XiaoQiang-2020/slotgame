@@ -455,7 +455,7 @@ Boot
 - `App.Scene.SceneNavigator` directly loads `Login` and `Game`; no App-level `Loading.unity` is used.
 - `Assets/Resources/PatchWindow.prefab` is copied from the YooAsset sample and points to `Framework.Patch.PatchWindow`.
 - `Assets/Games/SpaceShooter/GameRes` and `GameSetting` are copied into the formal game directory. Collector paths now point to `Assets/Games/SpaceShooter/GameRes`.
-- Copied SpaceShooter scripts are parked in `Assets/Games/SpaceShooter/GameScriptSource~` for this pass. Unity ignores `~` folders; after archive deletion, a follow-up can decide whether to enable these scripts, namespace them, or keep them parked until gameplay entry wiring is finalized.
+- SpaceShooter gameplay scripts are now enabled under `Assets/Games/SpaceShooter/Scripts` while preserving original class names and GUID-bearing `.meta` files. The sample `PatchEventDefine.cs` and `UserEventDefine.cs` copies remain parked in `Assets/Games/SpaceShooter/GameScriptSource~` only as non-compiled historical reference because Framework owns those events.
 - Archive deletion decision: after migration and Unity/YooAsset validation, `Assets/Samples/YooAsset/3.0.2-beta/SpaceShooter` is removed from the active project. Future SpaceShooter work must use `Assets/Games/SpaceShooter`; original sample comparison comes from git history or an external YooAsset sample import.
 - `Assets/Editor/SceneGenerator.cs` now generates `Assets/Scenes/Boot.unity`, `Login.unity`, and `Game.unity` with App-layer components and does not generate `Loading.unity`.
 - Unity Editor validation is still required: run `Tools/Generate SlotGame Scenes`, confirm Build Settings order, compile, and Play from `Assets/Scenes/Boot.unity`.

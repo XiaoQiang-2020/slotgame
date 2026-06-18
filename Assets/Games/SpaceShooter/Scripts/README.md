@@ -1,11 +1,12 @@
 # SpaceShooter Scripts
 
-The migrated SpaceShooter scripts are parked in the sibling non-compiled source folder for the first pass.
+This is the formal compiled script directory for SpaceShooter gameplay code.
 
-Unity ignores `~` folders, so these files stay out of compilation until the gameplay entry is wired deliberately.
-The original YooAsset SpaceShooter sample was archived out of the active project after migration.
+The migrated gameplay, battle, window, behaviour, battle event, and scene event scripts live here so copied SpaceShooter scenes and prefabs can keep their original script GUID bindings.
 
-Enable this folder only after one of these follow-up decisions is complete:
+The sample patch and user event definitions are intentionally not enabled here:
 
-- add formal namespaces to the copied scripts and rebind copied prefabs/scenes in Unity Editor.
-- keep the files parked here until the formal SpaceShooter gameplay entry is finalized.
+- `PatchEventDefine.cs`
+- `UserEventDefine.cs`
+
+Those event definitions are owned by `Assets/Scripts/Framework/Patch/PatchEventDefine.cs` in the formal architecture. The parked copies remain only as historical reference in the sibling non-compiled source folder.
