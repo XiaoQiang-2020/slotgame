@@ -49,6 +49,9 @@ Assets/
       Scene/
       Config/
 
+    Resources/
+      PatchWindow.prefab
+
   Games/
     SpaceShooter/
       Scripts/
@@ -72,8 +75,9 @@ Assets/
 目录职责：
 
 - `Assets/Scripts/Framework/`：公共底座，原则上随包发布，不作为常规热更目标。
-- `Assets/Scripts/App/`：应用壳层，负责 Boot、Login、场景跳转、公共配置和兜底 UI。
+- `Assets/Scripts/App/`：应用壳层，负责 Boot、Login、场景跳转、公共配置和兜底流程。
 - `Assets/Scripts/App/Config/`：公共配置定义，区分内置兜底配置和远端更新配置。
+- `Assets/Resources/PatchWindow.prefab`：Boot/Patch 阶段随包兜底 UI，来源可参考 sample `SpaceShooter/Resources/PatchWindow.prefab`，仅用于 YooAsset 初始化前的 patch 反馈和失败重试。
 - `Assets/Games/SpaceShooter/`：正式游戏内容目录，承载玩法脚本、UI、资源、配置、场景。
 - `Assets/Samples/.../SpaceShooter/`：官方 sample 来源基线，只做对照和回溯，不作为长期开发目录。
 - `Assets/ThirdParty/`：第三方库和 SDK，只读，禁止直接修改源码。
@@ -96,7 +100,7 @@ Assets/
 - `Assets/Scripts/Framework/Utils/`
 - `Assets/Scripts/App/`
 - `Assets/Games/SpaceShooter/Scripts/`
-- 兜底 Loading / 兜底错误提示 UI
+- Boot/Patch 兜底 UI 和兜底错误提示 UI
 
 这些模块必须在资源更新失败、资源包损坏、网络异常时仍能工作。
 
@@ -115,6 +119,7 @@ Assets/
 约束：
 
 - 禁止使用 `Resources.Load` 作为正式资源加载方式。
+- 唯一例外是 Boot/Patch 阶段在 YooAsset 初始化前加载随包 `PatchWindow.prefab`。
 - 资源必须进入明确的 YooAsset 包和 Collector 分组。
 - Patch 流程必须能显示下载进度、失败提示和重试入口。
 - 关键兜底资源应随包保留，避免更新失败后无法显示错误 UI。
@@ -124,6 +129,8 @@ Assets/
 HybridCLR/AOT 能力在工程中保留，不删除现有目录、生成产物和工具链。它不是当前默认启动链路的强依赖，但可以在需要线上 C# 逻辑修复时通过独立开关启用。
 
 默认主流程保持 `Boot -> Patch(资源版本校验与下载) -> Login -> Game`，Patch 只承担资源版本校验、Manifest 更新和 YooAsset 资源下载，不默认阻塞在热更 DLL 加载上。
+
+App 启动链路不规划独立 `Loading.unity`。Boot 场景内直接实例化随包 `PatchWindow.prefab`，Patch 完成后进入 Login；游戏内容层如需过渡表现，可以保留自己的加载 UI prefab。
 
 保留范围包括：
 
@@ -356,11 +363,12 @@ AI 不应直接处理或需谨慎处理：
 - 启动时间：目标 2 秒内进入可反馈界面。
 - 崩溃率：目标小于 0.3%。
 - Patch 失败必须有用户可见提示和重试入口。
-- 资源更新失败必须能进入兜底错误界面。
+- 资源更新失败必须能通过随包 PatchWindow 或兜底错误界面提示用户。
 
 发布前检查：
 
 - `Boot -> Patch -> Login -> Game` 完整链路通过。
+- Boot 场景能实例化随包 `PatchWindow.prefab`，不依赖独立 Loading 场景。
 - YooAsset Manifest 更新、下载、失败重试通过。
 - Login 随包逻辑可用，表现资源可通过 YooAsset 更新。
 - SpaceShooter 资源引用无缺失。

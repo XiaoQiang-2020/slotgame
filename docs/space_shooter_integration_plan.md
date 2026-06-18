@@ -27,7 +27,7 @@
 2. `Assets/Scripts/App/`
    - 应用壳层和主流程。
    - 放 Boot/Startup、Login、SceneNavigator、主流程编排和固定公共配置。
-   - 负责串起补丁更新、登录、加载、进入正式游戏内容。
+   - 负责串起补丁更新、登录、进入正式游戏内容。
 
 3. `Assets/Games/SpaceShooter/`
    - 第一条轻量休闲游戏内容线。
@@ -86,6 +86,9 @@ Assets/
       Scene/
       Config/
 
+    Resources/
+      PatchWindow.prefab
+
   Games/
     SpaceShooter/
       Scripts/
@@ -107,6 +110,7 @@ Assets/
 说明：
 
 - `Assets/Scenes/Boot.unity` 是正式启动入口，可由 sample `Boot.unity` 迁出或重建。
+- `Assets/Resources/PatchWindow.prefab` 是 Boot/Patch 阶段随包兜底 UI，来源可参考 `Assets/Samples/YooAsset/3.0.2-beta/SpaceShooter/Resources/PatchWindow.prefab`。
 - `Assets/Scripts/App/` 负责启动、登录、场景跳转、公共配置和主流程。
 - `Assets/Scripts/App/Config/` 负责公共配置定义，配置数据可区分内置兜底和远端更新版本。
 - `Assets/Games/SpaceShooter/` 是正式游戏内容目录，不再把 sample 目录作为开发主线。
@@ -164,12 +168,14 @@ HybridCLR 逻辑热更启用时可额外接入：
 - 初始化 UniEvent。
 - 初始化 YooAssets。
 - 创建并启动 Framework/Patch。
-- 挂载或生成 patch UI。
+- 在 Boot 场景内通过随包 `PatchWindow.prefab` 挂载 patch UI。
 - 提供 Login 固定流程。
 - 提供场景跳转和主流程编排。
 - 提供公共配置读取和兜底错误提示。
 
 `Boot.unity` 应迁到 `Assets/Scenes/Boot.unity`，并加入 Build Settings 第一位。
+
+Patch UI 不设计独立 Loading 场景。Boot 阶段直接从随包 `Resources` 加载 `PatchWindow.prefab`，参考 sample `Boot.cs` 中 `Resources.Load<GameObject>("PatchWindow")` 的方式；prefab 来源参考 sample 的 `SpaceShooter/Resources/PatchWindow.prefab`。该用法是 YooAsset 初始化前的兜底特例，不能扩展成正式游戏资源加载方式。
 
 Login 逻辑当前随包发布，不放入 Framework，也不放进 SpaceShooter 游戏内容目录。Login 的 UI prefab、图片、动画、文案配置可走 YooAsset 资源分组更新。
 
@@ -250,7 +256,6 @@ HybridCLR 不是删除项，也不是当前必须接入主流程的强依赖。�
 
 适合保持场景生命周期的对象：
 
-- `LoadingController`
 - `LoginController`
 - `GameController`
 - `BattleController`
@@ -286,7 +291,7 @@ Boot
 1. `Boot`
    - 正式入口场景。
    - 位于 `Assets/Scenes/Boot.unity`。
-   - 负责启动 patch 流程。
+   - 负责实例化随包 `PatchWindow.prefab` 并启动 patch 流程。
 
 2. `Patch`
    - 由 `Framework/Patch` 驱动。
@@ -333,6 +338,8 @@ Boot
 
 - 将 sample `Boot.unity` 迁出或重建为 `Assets/Scenes/Boot.unity`。
 - 绑定 App/Boot 或 Framework/Patch 启动脚本。
+- 将 sample `Resources/PatchWindow.prefab` 迁到主工程随包 Resources 目录，作为 Boot/Patch 兜底 UI。
+- Boot 阶段直接挂载 `PatchWindow.prefab`，不新增独立 Loading 场景。
 - 确认 Build Settings 中 `Boot` 是第一启动场景。
 
 ### 3. 迁移 SpaceShooter 游戏内容
@@ -352,7 +359,7 @@ Boot
 
 - 所有 C# 业务逻辑随包发布，包括 Framework、App/Login、Games/SpaceShooter。
 - Login、SpaceShooter 的 prefab、图片、音效、动画、配置表走 YooAsset 资源分组。
-- 关键兜底 UI 和错误提示资源随包保留。
+- `PatchWindow.prefab` 和关键错误提示资源随包保留。
 - 为资源更新设计分组、版本、下载失败重试和回滚策略。
 
 ### 3.2 规范全局服务
@@ -374,10 +381,12 @@ Boot
 - `PatchCompletedEvent` 触发进入 Login。
 - `Login` 成功后进入 Game。
 - 场景名统一在 App 场景常量中维护。
+- App 启动链路不引入 `Loading.unity`；如 SpaceShooter 内部需要过渡 UI，可保留游戏内容层自己的 `UILoading` prefab。
 
 ### 6. 验证完整运行链
 
 - 验证主工程从 `Assets/Scenes/Boot.unity` 启动。
+- 验证 Boot 场景能实例化随包 `PatchWindow.prefab`。
 - 验证 patch 流程可正常完成。
 - 验证 YooAsset 资源版本校验、下载、失败重试可正常工作。
 - 验证 patch 完成后进入 Login。
@@ -390,8 +399,8 @@ Boot
 - 任务 2：创建 `Assets/Scripts/App/`，迁移 Boot、Login、Scene 和主流程代码。
 - 任务 3：将现有 Login 场景干净嵌入 App 层。
 - 任务 4：创建 `Assets/Games/SpaceShooter/` 并迁移游戏内容。
-- 任务 5：将正式 Boot 场景迁到 `Assets/Scenes/Boot.unity`。
-- 任务 6：修正 SceneNavigator/SceneNames/LoadingTarget 等引用。
+- 任务 5：将正式 Boot 场景迁到 `Assets/Scenes/Boot.unity`，并挂载随包 `PatchWindow.prefab`。
+- 任务 6：移除 App 级 Loading 场景和 LoadingTarget 设计，修正 SceneNavigator/SceneNames 等引用。
 - 任务 7：更新 Build Settings 场景顺序。
 - 任务 8：建立 YooAsset 资源分组，支持 UI、图片、音效、动画、配置表资源更新。
 - 任务 9：规范全局服务和单例生命周期。
@@ -404,7 +413,8 @@ Boot
 - [ ] `Assets/Scenes/Login.unity` 已存在，并已加入 Build Settings。
 - [ ] `Assets/Scenes/Game.unity` 或 SpaceShooter 入口场景已存在，并已加入 Build Settings。
 - [ ] Boot 场景能启动 Framework/Patch。
-- [ ] App 能在资源更新失败时显示兜底错误提示。
+- [ ] Boot 场景能实例化随包 `PatchWindow.prefab`。
+- [ ] App 能在资源更新失败时通过 PatchWindow 显示兜底错误提示。
 - [ ] Patch UI 能显示状态、错误、下载进度和确认按钮。
 - [ ] Patch 完成后进入 Login。
 - [ ] Login 场景包含 LoginController 和 LoginView。
@@ -421,7 +431,7 @@ Boot
 
 - Unity 资源迁移容易造成 prefab、scene、material、sprite atlas 引用断裂，需要通过 Unity Editor 执行或校验迁移。
 - `Assets/Scripts/Framework/Game/` 当前命名可能混淆，需要判断它是 App 壳层还是 SpaceShooter 玩法逻辑。
-- Patch 层不能继续吸收 Login、Loading、SpaceShooter 玩法逻辑，否则 Framework 会失去复用性。
+- Patch 层不能继续吸收 Login、App 级 Loading、SpaceShooter 玩法逻辑，否则 Framework 会失去复用性。
 - App 层不应包含 SpaceShooter 玩法细节，只负责选择和进入目标内容。
 - 资源更新失败时必须能使用随包兜底资源提示用户。
 - 单例如果跨层互相直接引用，会破坏 Framework/App/Game 的边界，后续维护和资源更新会变难。
@@ -433,6 +443,7 @@ Boot
 
 - 继续保留并维护 `Assets/Scripts/Framework/Patch/` 作为公共 Patch 框架。
 - 新增 `Assets/Scripts/App/` 承载 Boot、Login、场景流和公共配置。
+- 不新增独立 Loading 场景；Boot 直接挂载随包 `PatchWindow.prefab` 完成 Patch 反馈和失败重试。
 - 将 SpaceShooter 游戏内容正式迁到 `Assets/Games/SpaceShooter/`。
 - C# 业务逻辑默认随包发布，UI、动画、音效、配置等走 YooAsset 资源分组更新。
 - HybridCLR/AOT 工程能力保留，可随时按独立开关启用，但默认主流程不依赖热更 DLL。
