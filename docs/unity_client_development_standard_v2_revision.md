@@ -12,7 +12,7 @@
 
 - Unity 2022.3 LTS
 - YooAsset：资源更新、资源分组、Manifest、Patch 流程
-- HybridCLR：未来可选扩展能力，当前阶段不启用
+- HybridCLR：现有 AOT/HotUpdate 工程能力保留，默认主流程不依赖，可按开关启用逻辑热更
 - UniFramework.Event / UniFramework.Machine：事件和状态机
 - MVC + 事件驱动：应用层和玩法层的主要组织方式
 - Superpowers / Codex / AI Agent：用于设计、计划、代码生成、审查和文档维护
@@ -21,8 +21,8 @@
 
 - 主工程入口可直接运行：`Boot -> Patch(资源版本校验与下载) -> Login -> Game`
 - Framework 稳定随包，避免频繁热更
-- App/Login 随包发布
-- 游戏玩法 C# 逻辑随包发布
+- App/Login 默认随包发布
+- 游戏玩法 C# 逻辑默认随包发布
 - UI prefab、动画、图片、音效、配置表走 YooAsset 资源分组更新
 
 ## 二、工程目录结构
@@ -89,7 +89,7 @@ Assets/
 
 ### 随包发布
 
-当前阶段所有 C# 业务逻辑随包发布，不作为常规热更目标：
+默认策略是所有 C# 业务逻辑随包发布，不作为常规热更目标：
 
 - `Assets/Scripts/Framework/Patch/`
 - `Assets/Scripts/Framework/Resource/`
@@ -102,7 +102,7 @@ Assets/
 
 ### YooAsset 资源更新
 
-当前阶段只启用资源热更。以下内容走 YooAsset 资源分组更新：
+当前常规热更只启用资源热更。以下内容走 YooAsset 资源分组更新：
 
 - UI prefab
 - 图片、图集、字体
@@ -119,11 +119,20 @@ Assets/
 - Patch 流程必须能显示下载进度、失败提示和重试入口。
 - 关键兜底资源应随包保留，避免更新失败后无法显示错误 UI。
 
-### HybridCLR 预留能力
+### HybridCLR/AOT 保留能力
 
-HybridCLR 保留为未来可选扩展能力，当前阶段不启用，不进入启动链路，也不要求加载 AOT 元数据或热更 DLL。
+HybridCLR/AOT 能力在工程中保留，不删除现有目录、生成产物和工具链。它不是当前默认启动链路的强依赖，但可以在需要线上 C# 逻辑修复时通过独立开关启用。
 
-未来如果线上逻辑热更收益明确，再单独设计并评审：
+默认主流程保持 `Boot -> Patch(资源版本校验与下载) -> Login -> Game`，Patch 只承担资源版本校验、Manifest 更新和 YooAsset 资源下载，不默认阻塞在热更 DLL 加载上。
+
+保留范围包括：
+
+- `Assets/HotUpdate/` 热更代码目录。
+- `Assets/HybridCLRGenerate/` AOT 泛型和 `link.xml` 生成结果。
+- `Assets/Editor/HotfixPipeline.cs` 等打包辅助工具。
+- AOT 元数据和 `HotUpdate.dll` 的生成、加载参考链路。
+
+如果线上逻辑热更收益明确，再单独设计并评审：
 
 - 热更 DLL 加载入口。
 - AOT 元数据加载。
@@ -246,7 +255,7 @@ AI 不应直接处理或需谨慎处理：
 - `.prefab`
 - Inspector 绑定
 - YooAsset Collector Editor 配置
-- HybridCLR Editor 菜单操作（当前阶段不启用）
+- HybridCLR Editor 菜单操作（保留工具链，启用逻辑热更时人工确认）
 - 真机性能和广告 SDK 验证
 
 这些内容由 AI 输出操作清单，人工在 Unity Editor 中执行和确认。
@@ -260,10 +269,10 @@ AI 不应直接处理或需谨慎处理：
 - Unity 版本固定为 2022.3 LTS。
 - 架构采用 `Framework + App + Games/SpaceShooter`。
 - Framework 不依赖 App 或 Games 的具体业务实现。
-- App/Login 随包发布。
-- 游戏 C# 逻辑随包发布，资源走 YooAsset。
+- App/Login 默认随包发布。
+- 游戏 C# 逻辑默认随包发布，资源走 YooAsset。
 - Controller/View 默认不做跨场景单例。
-- HybridCLR 是未来可选扩展能力，当前阶段不启用。
+- HybridCLR/AOT 工程能力保留，默认主流程不依赖热更 DLL，可按开关启用。
 
 ## 七、自定义 Skill 建议
 
@@ -281,9 +290,9 @@ AI 不应直接处理或需谨慎处理：
 
 ### unity-hybridclr
 
-当前阶段不作为强制 Skill。未来启用 HybridCLR 逻辑热更时再打开。
+默认不作为强制 Skill。修改现有 HybridCLR/AOT 工具链、热更 DLL 目录或启用逻辑热更时再打开。
 
-启用后触发：修改热更 DLL 目录或新增逻辑热更模块。
+触发：修改热更 DLL 目录、新增逻辑热更模块、调整 AOT 元数据生成或启用逻辑热更开关。
 
 规则：
 
@@ -382,7 +391,7 @@ AI 不应直接处理或需谨慎处理：
 初稿中的以下内容需要按本修订稿替换：
 
 - `Assets/GameLauncher` 改为 `Assets/Scripts/App`。
-- `Assets/Hotfix` 当前阶段不启用；游戏 C# 逻辑放在 `Assets/Scripts/App` 和 `Assets/Games/SpaceShooter/Scripts` 并随包发布。
+- `Assets/Hotfix` 不作为默认业务开发主线；现有 HybridCLR/AOT 能力保留，游戏 C# 逻辑默认放在 `Assets/Scripts/App` 和 `Assets/Games/SpaceShooter/Scripts` 并随包发布。
 - `Assets/Config` 改为 `Assets/Scripts/App/Config` 加 YooAsset 配置资源分组。
 - `ArtAssets` 改为 YooAsset 管理下的游戏内容资源目录。
 - `Addressables` 相关描述改为 YooAsset。
@@ -392,6 +401,6 @@ AI 不应直接处理或需谨慎处理：
 
 ## 十二、结语
 
-这份修订稿的重点不是追求大而全，而是把当前项目真实采用的 YooAsset 资源热更 + Framework/App/Game 分层写清楚。HybridCLR 保留为未来可选扩展能力，当前阶段不启用。
+这份修订稿的重点不是追求大而全，而是把当前项目真实采用的 YooAsset 资源热更 + Framework/App/Game 分层写清楚。HybridCLR/AOT 作为现有工程能力保留，默认主流程不依赖热更 DLL，但需要时可以按独立开关启用逻辑热更。
 
 后续所有实现计划、AI Prompt、代码生成和 Unity Editor 操作，都应以本修订稿和 `space_shooter_integration_plan.md` 为准。

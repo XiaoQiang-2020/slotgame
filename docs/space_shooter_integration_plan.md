@@ -43,7 +43,7 @@
 2. **主流程放到 App**
    - Boot、Login、场景跳转不是底层框架，也不是玩法独有逻辑。
    - 它们属于主应用壳层，统一放到 `Assets/Scripts/App/`。
-   - 当前阶段 App 层随包发布，不启用 C# 逻辑热更。
+   - 当前默认 App 层随包发布，不依赖 HybridCLR 逻辑热更。
 
 3. **游戏内容迁到 Games**
    - SpaceShooter 不只是参考代码，而是第一条轻量休闲游戏内容线。
@@ -60,9 +60,9 @@
 
 6. **热更边界清晰**
    - Framework 是稳定公共模块，原则上随包发布，不作为常规热更目标。
-   - App 和 Games/SpaceShooter 的 C# 业务逻辑当前随包发布。
+   - App 和 Games/SpaceShooter 的 C# 业务逻辑默认随包发布。
    - 游戏 UI prefab、动画、图片、音效、配置资源走 YooAsset 资源分组更新。
-   - HybridCLR 保留为未来可选扩展能力，当前不进入主流程。
+   - HybridCLR/AOT 工程能力保留，可作为线上逻辑热更通道按开关启用，但不作为默认主流程依赖。
 
 ## 目标目录规划
 
@@ -121,7 +121,7 @@ Assets/
 - 初始化 YooAssets。
 - 创建和驱动 PatchManager 状态机。
 - 保留 UniFramework.Event 事件机制。
-- 处理包初始化、版本请求、Manifest 更新、下载、元数据加载、缓存清理。
+- 处理包初始化、版本请求、Manifest 更新、下载、缓存清理。
 - 在 patch 完成后发布 `PatchCompletedEvent`。
 
 建议保留或维护的核心类：
@@ -140,9 +140,13 @@ Assets/
 - `FsmCreateDownloader`
 - `FsmDownloadPackageFiles`
 - `FsmDownloadPackageOver`
-- `FsmLoadMetadata`
 - `FsmClearCacheBundle`
 - `FsmStartGame`
+
+HybridCLR 逻辑热更启用时可额外接入：
+
+- `FsmLoadMetadata`
+- 热更 DLL 加载状态或服务
 
 边界要求：
 
@@ -182,17 +186,21 @@ SpaceShooter 是第一条游戏内容线，负责：
 
 玩法逻辑、数值配置读取、UI 控制逻辑当前随包发布。游戏 UI prefab、动画、图片、音效、关卡配置、数值表等资源走 YooAsset 资源分组更新。
 
-### HybridCLR 预留
+### HybridCLR/AOT 保留策略
 
-HybridCLR 保留为未来可选扩展能力，当前阶段不启用，不进入启动链路，也不要求加载 AOT 元数据或热更 DLL。
+HybridCLR 不是删除项，也不是当前必须接入主流程的强依赖。项目现有的 `Assets/HotUpdate/`、`Assets/HybridCLRGenerate/`、`Assets/Editor/HotfixPipeline.cs`、AOT 元数据生成和 `HotUpdate.dll` 相关链路继续保留，作为随时可启用的逻辑热更能力。
 
-未来如果线上逻辑热更收益明确，再单独设计并评审：
+默认发布策略是：Framework、App/Login、Games/SpaceShooter 的 C# 业务逻辑随包发布；Boot 主流程保持 `Boot -> Patch(资源版本校验与下载) -> Login -> Game`，不默认加载热更 DLL，也不把 AOT 元数据加载作为必经步骤。
+
+如果线上出现必须改 C# 逻辑且重新发包成本过高的场景，可以按独立开关启用 HybridCLR。启用前需要单独设计并评审：
 
 - 热更 DLL 加载入口。
 - AOT 元数据加载。
 - `link.xml` 和泛型实例保留策略。
 - 热更层服务生命周期。
 - 失败回滚和灰度策略。
+
+当前 sample `GameManager.cs` 中已有 `RuntimeApi.LoadMetadataForAOTAssembly` 和 `HotUpdate.dll` 加载示例，应视为现有能力路径和参考实现。迁移到正式 `Assets/Games/SpaceShooter/` 时，如果默认随包逻辑即可满足需求，可以先用编译开关或入口开关让该路径不参与默认启动；如果确认启用逻辑热更，则应把这部分整理为 App 或 Framework 暴露的明确服务，而不是散落在玩法 `GameManager` 中。
 
 ## 全局服务与单例约束
 
@@ -426,7 +434,7 @@ Boot
 - 继续保留并维护 `Assets/Scripts/Framework/Patch/` 作为公共 Patch 框架。
 - 新增 `Assets/Scripts/App/` 承载 Boot、Login、场景流和公共配置。
 - 将 SpaceShooter 游戏内容正式迁到 `Assets/Games/SpaceShooter/`。
-- C# 业务逻辑随包发布，UI、动画、音效、配置等走 YooAsset 资源分组更新。
-- HybridCLR 作为未来可选扩展能力保留，当前阶段不启用。
+- C# 业务逻辑默认随包发布，UI、动画、音效、配置等走 YooAsset 资源分组更新。
+- HybridCLR/AOT 工程能力保留，可随时按独立开关启用，但默认主流程不依赖热更 DLL。
 - 将 sample 目录作为来源基线保留，而不是长期开发目录。
 - 以主工程 `Assets/Scenes/Boot.unity` 为正式运行入口，保证调整架构后可以直接运行游戏。
