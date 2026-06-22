@@ -1,11 +1,14 @@
 using System.Linq;
+using App.UI;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace App.Login
 {
-    public class LoginView : MVC.BaseView
+    public class LoginView : UIWindow
     {
+        public const string LoginWindowId = "Login";
+
         [SerializeField]
         private InputField _playerNameInput;
 
@@ -15,9 +18,13 @@ namespace App.Login
         [SerializeField]
         private Text _messageText;
 
-        private void Awake()
+        public override string WindowId => LoginWindowId;
+        public override UILayer Layer => UILayer.Screen;
+
+        protected override void Awake()
         {
             InitReferences();
+            base.Awake();
         }
 
         private void InitReferences()
@@ -37,18 +44,36 @@ namespace App.Login
                     .FirstOrDefault(t => t.gameObject.name != "Text");
         }
 
-        public string PlayerName => _playerNameInput != null ? _playerNameInput.text : string.Empty;
+        public string PlayerName
+        {
+            get
+            {
+                InitReferences();
+                return _playerNameInput != null ? _playerNameInput.text : string.Empty;
+            }
+        }
 
-        public Button LoginButton => _loginButton;
+        public Button LoginButton
+        {
+            get
+            {
+                InitReferences();
+                return _loginButton;
+            }
+        }
 
         public void SetMessage(string message)
         {
+            InitReferences();
+
             if (_messageText != null)
                 _messageText.text = message;
         }
 
         public void SetLoginEnabled(bool enabled)
         {
+            InitReferences();
+
             if (_loginButton != null)
                 _loginButton.interactable = enabled;
         }

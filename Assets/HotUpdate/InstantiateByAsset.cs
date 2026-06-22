@@ -4,6 +4,6 @@ public class InstantiateByAsset : MonoBehaviour
 {
     void Start()
     {
-        Debug.Log("热更后的代码");
+        Debug.Log("热更后的代码111");
     }
 }

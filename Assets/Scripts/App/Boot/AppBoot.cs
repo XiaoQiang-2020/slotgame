@@ -73,7 +73,9 @@ namespace App.Boot
 
         private static void OnPatchCompleted(IEventMessage message)
         {
+            GameManager.Instance.SetGamePackage(YooAssets.GetPackage("DefaultPackage"));
             SceneNavigator.LoadLoginScene();
+
         }
     }
 }

@@ -21,6 +21,7 @@ namespace App.Login
 
             if (_loginView != null)
             {
+                _loginView.Open();
                 _loginView.SetMessage("Enter your player name and press Login.");
                 _loginView.SetLoginEnabled(true);
                 BindViewEvents();
@@ -66,7 +67,10 @@ namespace App.Login
             _loginView.SetMessage($"Welcome, {playerName}!");
             _loginView.SetLoginEnabled(false);
 
-            SceneNavigator.LoadGameScene();
+            // SceneNavigator.LoadGameScene();
+            // GameManager.Instance.SetPlayerName(playerName);
+            // SceneNavigator.LoadGameScene();
+             SceneChangeToHomeEvent.SendEventMessage();
         }
     }
 }

@@ -9,6 +9,7 @@ namespace Framework.Patch
         void IStateNode.OnEnter()
         {
             PatchStepChangedEvent.SendEventMessage("Starting game.");
+
             PatchCompletedEvent.SendEventMessage();
         }
 

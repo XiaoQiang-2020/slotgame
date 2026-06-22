@@ -1,7 +1,6 @@
 #if UNITY_EDITOR
 using System.IO;
 using UnityEditor;
-using UnityEditor.Events;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -10,6 +9,7 @@ using UnityEngine.UI;
 using App.Boot;
 using App.Game;
 using App.Login;
+using App.UI;
 using Framework.Patch;
 
 public static class SceneGenerator
@@ -37,6 +37,54 @@ public static class SceneGenerator
         AssetDatabase.Refresh();
 
         Debug.Log("SlotGame scenes generated and added to Build Settings.");
+    }
+
+    [MenuItem("Tools/UI/Upgrade Login UGUI")]
+    public static void UpgradeLoginUGUI()
+    {
+        if (!File.Exists(LoginScenePath))
+        {
+            Debug.LogError($"Login scene not found: {LoginScenePath}");
+            return;
+        }
+
+        var scene = EditorSceneManager.OpenScene(LoginScenePath, OpenSceneMode.Single);
+        CreateEventSystem();
+
+        var canvas = FindOrCreateCanvas("LoginCanvas");
+        var uiRoot = EnsureUIRoot(canvas);
+        var screenLayer = uiRoot.GetLayerRoot(UILayer.Screen);
+        var loginView = Object.FindObjectOfType<LoginView>(true);
+
+        if (loginView == null)
+        {
+            var viewGO = CreateUIElement("LoginView", screenLayer);
+            loginView = viewGO.AddComponent<LoginView>();
+            CreateText(viewGO.transform, "Title", "Login", 34, new Vector2(0.5f, 0.8f));
+            CreateInputField(viewGO.transform, "PlayerNameInput", "Player Name", new Vector2(0.5f, 0.55f));
+            CreateText(viewGO.transform, "MessageText", "Enter your player name and press Login.", 20, new Vector2(0.5f, 0.35f));
+            CreateButton(viewGO.transform, "LoginButton", "Login", new Vector2(0.5f, 0.2f));
+        }
+        else if (loginView.transform.parent != screenLayer)
+        {
+            loginView.transform.SetParent(screenLayer, false);
+        }
+
+        var controller = Object.FindObjectOfType<LoginController>(true);
+        if (controller == null)
+        {
+            var root = GameObject.Find("LoginScene") ?? new GameObject("LoginScene");
+            controller = root.AddComponent<LoginController>();
+        }
+
+        BindLoginReferences(controller, loginView);
+        EditorUtility.SetDirty(canvas);
+        EditorUtility.SetDirty(loginView);
+        EditorUtility.SetDirty(controller);
+        EditorSceneManager.MarkSceneDirty(scene);
+        EditorSceneManager.SaveScene(scene);
+
+        Debug.Log("Login scene upgraded for App/UI uGUI.");
     }
 
     private static void GenerateBootScene()
@@ -76,20 +124,18 @@ public static class SceneGenerator
 
         var canvas = CreateCanvas("LoginCanvas");
         canvas.transform.SetParent(root.transform, false);
+        var uiRoot = EnsureUIRoot(canvas);
 
-        var viewGO = CreateUIElement("LoginView", canvas.transform);
-        viewGO.AddComponent<LoginView>();
+        var viewGO = CreateUIElement("LoginView", uiRoot.GetLayerRoot(UILayer.Screen));
+        var loginView = viewGO.AddComponent<LoginView>();
 
         CreateText(viewGO.transform, "Title", "Login", 34, new Vector2(0.5f, 0.8f));
-        var inputGO = CreateInputField(viewGO.transform, "PlayerNameInput", "Player Name", new Vector2(0.5f, 0.55f));
+        CreateInputField(viewGO.transform, "PlayerNameInput", "Player Name", new Vector2(0.5f, 0.55f));
         CreateText(viewGO.transform, "MessageText", "Enter your player name and press Login.", 20, new Vector2(0.5f, 0.35f));
-        var buttonGO = CreateButton(viewGO.transform, "LoginButton", "Login", new Vector2(0.5f, 0.2f));
+        CreateButton(viewGO.transform, "LoginButton", "Login", new Vector2(0.5f, 0.2f));
 
-        var view = viewGO.GetComponent<LoginView>();
         viewGO.AddComponent<CanvasRenderer>();
-
-        var button = buttonGO.GetComponent<Button>();
-        UnityEventTools.AddPersistentListener(button.onClick, controller.OnLoginButtonClicked);
+        BindLoginReferences(controller, loginView);
 
         EditorSceneManager.SaveScene(scene, LoginScenePath);
     }
@@ -124,14 +170,48 @@ public static class SceneGenerator
     private static GameObject CreateCanvas(string name)
     {
         var canvasGO = new GameObject(name, typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster));
-        var canvas = canvasGO.GetComponent<Canvas>();
-        canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-
-        var scaler = canvasGO.GetComponent<CanvasScaler>();
-        scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-        scaler.referenceResolution = new Vector2(1920, 1080);
+        ConfigureCanvas(canvasGO);
 
         return canvasGO;
+    }
+
+    private static GameObject FindOrCreateCanvas(string name)
+    {
+        var existing = GameObject.Find(name);
+        if (existing != null)
+        {
+            if (existing.GetComponent<Canvas>() == null)
+                existing.AddComponent<Canvas>();
+            if (existing.GetComponent<CanvasScaler>() == null)
+                existing.AddComponent<CanvasScaler>();
+            if (existing.GetComponent<GraphicRaycaster>() == null)
+                existing.AddComponent<GraphicRaycaster>();
+
+            ConfigureCanvas(existing);
+            return existing;
+        }
+
+        return CreateCanvas(name);
+    }
+
+    private static void ConfigureCanvas(GameObject canvasObject)
+    {
+        var canvas = canvasObject.GetComponent<Canvas>();
+        canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+
+        var scaler = canvasObject.GetComponent<CanvasScaler>();
+        scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+        scaler.referenceResolution = new Vector2(1920, 1080);
+    }
+
+    private static UIRoot EnsureUIRoot(GameObject canvas)
+    {
+        var uiRoot = canvas.GetComponent<UIRoot>();
+        if (uiRoot == null)
+            uiRoot = canvas.AddComponent<UIRoot>();
+
+        uiRoot.EnsureLayers();
+        return uiRoot;
     }
 
     private static void CreateEventSystem()
@@ -139,8 +219,39 @@ public static class SceneGenerator
         if (Object.FindObjectOfType<EventSystem>() != null)
             return;
 
-        var eventSystemGO = new GameObject("EventSystem", typeof(EventSystem), typeof(StandaloneInputModule));
-        eventSystemGO.hideFlags = HideFlags.HideAndDontSave;
+        new GameObject("EventSystem", typeof(EventSystem), typeof(StandaloneInputModule));
+    }
+
+    private static void BindLoginReferences(LoginController controller, LoginView loginView)
+    {
+        if (controller == null || loginView == null)
+            return;
+
+        var input = loginView.GetComponentInChildren<InputField>(true);
+        var button = loginView.GetComponentInChildren<Button>(true);
+        var messageText = FindChildText(loginView.transform, "MessageText");
+
+        var viewObject = new SerializedObject(loginView);
+        viewObject.FindProperty("_playerNameInput").objectReferenceValue = input;
+        viewObject.FindProperty("_loginButton").objectReferenceValue = button;
+        viewObject.FindProperty("_messageText").objectReferenceValue = messageText;
+        viewObject.ApplyModifiedPropertiesWithoutUndo();
+
+        var controllerObject = new SerializedObject(controller);
+        controllerObject.FindProperty("_loginView").objectReferenceValue = loginView;
+        controllerObject.ApplyModifiedPropertiesWithoutUndo();
+    }
+
+    private static Text FindChildText(Transform parent, string name)
+    {
+        var texts = parent.GetComponentsInChildren<Text>(true);
+        for (int i = 0; i < texts.Length; i++)
+        {
+            if (texts[i].gameObject.name == name)
+                return texts[i];
+        }
+
+        return texts.Length > 0 ? texts[0] : null;
     }
 
     private static void CreateCamera()
