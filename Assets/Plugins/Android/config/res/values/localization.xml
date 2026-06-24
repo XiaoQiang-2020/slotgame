@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="dialog_title_default_text">温馨提示</string>
+    <string name="dialog_cancel_default_text">取消</string>
+    <string name="dialog_ok_default_text">确定</string>
+
+    <string name="permission_normal_title">为了让你获得更好的游戏体验需要获得以下权限</string>
+    <string name="permission_normal_cancel">退出</string>
+    <string name="permission_normal_ok">确定</string>
+    <string name="permission_normal_content"><Data><![CDATA[<html><small> 1：手机/电话权限<small> <br><font color="#262626">保障账号安全，金豆不怕丢</font> </small>  </small> <br><small> 2：存储权限<small> <br><font color="#262626">记录欢乐时刻，减少流量消耗<font></small>  </small> <br></html>]]></Data></string>
+    <string name="permission_error_title">授权失败</string>
+    <string name="permission_error_cancel">退出</string>
+    <string name="permission_error_ok">重新授权</string>
+    <string name="permission_error_content">获取权限失败\n红幺鸡麻将需要获取手机储存权限和手机信息权限，以保证您能正常游戏。\n是否重试？</string>
+    <string name="permission_error_foramt"><Data><![CDATA[<small>%s，请重新授权<br></small>]]></Data></string>
+    <string name="permission_error_all">权限获取失败</string>
+    <string name="permission_error_phone">存储权限获取成功，但手机/电话权限失败了</string>
+    <string name="permission_error_storage"> 手机/电话权限获取成功，但存储权限失败了</string>
+
+    <string name="photo_oepn_camera_error">打开相机失败，请确保相机权限是否开启！</string>
+    <string name="photo_oepn_album_error">打开相册失败，请确保相机权限是否开启！</string>
+</resources>

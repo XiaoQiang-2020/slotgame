@@ -7,7 +7,7 @@ namespace App.Game
     {
         private void Start()
         {
-            GameManagerEx.Instance.Init();
+            // GameManagerEx.Instance.Init();
         }
     }
 }

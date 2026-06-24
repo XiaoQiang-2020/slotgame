@@ -1,9 +1,9 @@
-using App.Scene;
+﻿using App.Scene;
 using Framework.Patch;
 using UniFramework.Event;
 using UnityEngine;
 using YooAsset;
-
+using Game;
 namespace App.Boot
 {
     public sealed class AppBoot : MonoBehaviour
@@ -39,6 +39,23 @@ namespace App.Boot
         {
             UniEvent.Initalize();
             YooAssets.Initialize();
+            AppGameManager.Instance.InitializeHost();
+            AppGameManager.Instance.RequestStartupAuthorize(OnStartupAuthorizeCompleted);
+        }
+
+        private void OnStartupAuthorizeCompleted(bool isAuthorized)
+        {
+            if (!isAuthorized)
+            {
+                Debug.LogError("Startup authorization failed. Patch flow will not start.");
+                return;
+            }
+
+            StartPatchFlow();
+        }
+
+        private void StartPatchFlow()
+        {
             CreatePatchWindow();
 
             _eventGroup.AddListener<PatchCompletedEvent>(OnPatchCompleted);
@@ -79,3 +96,5 @@ namespace App.Boot
         }
     }
 }
+
+

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<config>
+  <basic>
+    <!-- 游戏包名 -->
+    <app_package_name>com.blackwhalegame.hyj.sichuan</app_package_name>
+    <!-- 游戏名 -->
+    <app_name>红幺鸡麻将</app_name>
+  </basic>
+  <android>
+    <!-- AppsFlyer Dev Key -->
+    <appsflyer_dev_key>123</appsflyer_dev_key>
+    <!-- Android 不需要 App ID，保持为空 -->
+    <appsflyer_app_id>123</appsflyer_app_id>
+    <!-- AppsFlyer 调试日志 -->
+    <appsflyer_debug>false</appsflyer_debug>
+    <!-- 是否接收归因回调 -->
+    <appsflyer_get_conversion_data>true</appsflyer_get_conversion_data>
+   
+  </android>
+  <ios>
+   
+    <!-- AppsFlyer Dev Key -->
+    <appsflyer_dev_key>123</appsflyer_dev_key>
+    <!-- iOS Apple App ID，例如 1234567890 -->
+    <appsflyer_app_id>123</appsflyer_app_id>
+    <!-- AppsFlyer 调试日志 -->
+    <appsflyer_debug>false</appsflyer_debug>
+    <!-- 是否接收归因回调 -->
+    <appsflyer_get_conversion_data>true</appsflyer_get_conversion_data>
+   
+  </ios>
+</config>

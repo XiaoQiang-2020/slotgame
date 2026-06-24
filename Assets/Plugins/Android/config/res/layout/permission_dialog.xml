@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background= "@drawable/shape_corners">
+    <RelativeLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_centerVertical="true"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:background= "#ffffff">
+        <!--<RelativeLayout-->
+            <!--android:id="@+id/ct_layout_dialog_title"-->
+            <!--android:layout_width="fill_parent"-->
+            <!--android:layout_height="wrap_content"-->
+            <!--android:background="#ffffff">-->
+            <!--&lt;!&ndash;android:background="#76A3FB"&ndash;&gt;-->
+            <!--<TextView-->
+                <!--android:id="@+id/ct_dialog_title"-->
+                <!--android:layout_width="wrap_content"-->
+                <!--android:layout_height="wrap_content"-->
+                <!--android:layout_centerHorizontal="true"-->
+                <!--android:textSize="22dp"-->
+                <!--android:textColor="#262626"-->
+                <!--android:text="温馨提示" />-->
+        <!--</RelativeLayout>-->
+
+        <TextView
+            android:id="@+id/ct_dialog_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="0dp"
+            android:text="xxx"
+            android:textColor="#000000"
+            android:ellipsize="marquee"
+            android:textSize="24dp" />
+
+        <TextView
+            android:id="@+id/ct_dialog_content"
+            android:layout_below="@+id/ct_dialog_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="5dp"
+            android:layout_marginLeft="22dp"
+            android:layout_marginRight="10dp"
+            android:text="内容描述"
+            android:textColor="#000000"
+            android:ellipsize="marquee"
+            android:textSize="26dp" />
+
+        <RelativeLayout
+            android:layout_below="@+id/ct_dialog_content"
+            android:layout_width="match_parent"
+            android:layout_height="50dp">
+            <ImageView
+                android:layout_width="fill_parent"
+                android:layout_height="2dp"
+                android:layout_marginTop="5dp"
+                android:background="#E7E7E7" />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:layout_marginTop="6dp"
+                android:layout_alignParentBottom="true">
+                <TextView
+                    android:id="@+id/ct_dialog_cancel"
+                    android:layout_width="0dp"
+                    android:layout_height="fill_parent"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:text="退出"
+                    android:textColor="#000000"
+                    android:background="#ffffff"
+                    android:textSize="22dp" />
+                <ImageView
+                    android:layout_width="2dp"
+                    android:layout_height="fill_parent"
+                    android:layout_marginTop="5dp"
+                    android:background="#E7E7E7" />
+                <TextView
+                    android:id="@+id/ct_dialog_ok"
+                    android:layout_width="0dp"
+                    android:layout_height="fill_parent"
+                    android:layout_weight="1"
+                    android:background="#ffffff"
+                    android:gravity="center"
+                    android:text="我知道了"
+                    android:textColor="#000000"
+                    android:textSize="22dp" />
+
+            </LinearLayout>
+        </RelativeLayout>
+    </RelativeLayout>
+</RelativeLayout>
